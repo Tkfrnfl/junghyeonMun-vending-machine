@@ -2,11 +2,11 @@
 // 각 상태에 대한 메시지를 포함하고 있습니다.
 
 export const VENDING_STATUS = {
-    WAITING: '대기상태',
-    SELECTING: '선택상태',
-    PAYMENT: '결제상태',
-    COMPLETE: '완료상태',
-    ERROR: '오류상태'
+    WAITING: 'WAITING',
+    SELECTING: 'SELECTING',
+    PAYMENT: 'PAYMENT',
+    COMPLETE: 'COMPLETE',
+    ERROR: 'ERROR'
 } as const;
 
 export const VENDING_MESSAGES = {

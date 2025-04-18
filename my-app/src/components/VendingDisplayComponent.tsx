@@ -3,7 +3,7 @@ import { useVendingTextStore } from '../store/vendingTextStore';
 import { VENDING_STATUS } from '../util/vendingStatusMap';
 import {
     WaitingComponent,
-    SelectingComponent,
+    SelectionComponent,
     PaymentComponent,
     CompleteComponent,
     ErrorComponent
@@ -13,13 +13,13 @@ import { VendingStatusType } from '../util/vendingStatusMap';
 
 const statusComponentMap: Record<VendingStatusType, () => JSX.Element> = {
     'WAITING': WaitingComponent,
-    'SELECTING': SelectingComponent,
+    'SELECTING': SelectionComponent,
     'PAYMENT': PaymentComponent,
     'COMPLETE': CompleteComponent,
     'ERROR': ErrorComponent,
 };
 
-const VendingDisplayComponent = () => {
+const VendingDisplayComponent:React.FC = () => {
     const { vendingStatus, vendingMsg, setVendingTextStatus } = useVendingTextStore();
     
     const StatusComponent = statusComponentMap[vendingStatus as VendingStatusType];
@@ -35,7 +35,7 @@ const VendingDisplayComponent = () => {
             </div>
 
             <div className="w-full max-w-md">
-                <StatusComponent />
+                {StatusComponent ? <StatusComponent /> : <div>상태를 찾을 수 없습니다.</div>}
             </div>
         </div>
     );

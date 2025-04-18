@@ -5,6 +5,7 @@ import {
     WaitingComponent,
     SelectionComponent,
     PaymentComponent,
+    ChangeBackComponent,
     CompleteComponent,
     ErrorComponent
 } from './VendingDisplayComponentMap';
@@ -15,6 +16,7 @@ const statusComponentMap: Record<VendingStatusType, () => JSX.Element> = {
     'WAITING': WaitingComponent,
     'SELECTING': SelectionComponent,
     'PAYMENT': PaymentComponent,
+    'CHANGEBACK': ChangeBackComponent,
     'COMPLETE': CompleteComponent,
     'ERROR': ErrorComponent,
 };

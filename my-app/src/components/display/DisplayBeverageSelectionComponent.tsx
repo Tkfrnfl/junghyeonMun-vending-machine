@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useVendingTextStore } from '../../store/vendingTextStore';
 import { useBeverageStore } from '../../store/beberageStore';
+import { useUserSelectionStore } from '../../store/userSelectionStore';
 import { VendingStatusType } from '../../util/vendingStatusMap';
 import { AlertDialog } from '../dialog/AlertDialog';
-
 
 interface BeverageSelection {
     cola: number;
@@ -14,12 +14,7 @@ interface BeverageSelection {
 export const DisplayBeverageSelectionComponent = () => {
     const { setVendingTextStatus } = useVendingTextStore();
     const { getBeverageStock } = useBeverageStore();
-    
-    const [selection, setSelection] = useState<BeverageSelection>({
-        cola: 0,
-        water: 0,
-        coffee: 0
-    });
+    const { selectedBeverages, setSelectedAmount } = useUserSelectionStore();
 
     const [dialogConfig, setDialogConfig] = useState({
         isOpen: false,
@@ -28,14 +23,11 @@ export const DisplayBeverageSelectionComponent = () => {
     });
 
     const handleQuantityChange = (beverage: keyof BeverageSelection, value: number) => {
-        setSelection(prev => ({
-            ...prev,
-            [beverage]: Math.max(0, value) 
-        }));
+        setSelectedAmount(beverage, Math.max(0, value));
     };
 
     const handleComplete = () => {
-        const totalSelected = Object.values(selection).reduce((sum, curr) => sum + curr, 0);
+        const totalSelected = Object.values(selectedBeverages).reduce((sum, curr) => sum + curr, 0);
         if (totalSelected === 0) {
             setDialogConfig({
                 isOpen: true,
@@ -45,8 +37,8 @@ export const DisplayBeverageSelectionComponent = () => {
             return;
         }
 
-        //  재고 확인
-        const stockCheck = Object.entries(selection).every(([beverage, quantity]) => {
+        // 재고 확인
+        const stockCheck = Object.entries(selectedBeverages).every(([beverage, quantity]) => {
             const currentStock = getBeverageStock(beverage as keyof BeverageSelection);
             return quantity <= currentStock;
         });
@@ -59,9 +51,9 @@ export const DisplayBeverageSelectionComponent = () => {
             });
             return;
         }
-        // 결재 진행
-        let nextStatus: VendingStatusType = 'PAYMENT';
-        setVendingTextStatus(nextStatus);
+
+        // 결제 진행
+        setVendingTextStatus('PAYMENT');
     };
 
     return (
@@ -69,7 +61,7 @@ export const DisplayBeverageSelectionComponent = () => {
             <h3 className="text-xl font-bold mb-4">음료 선택</h3>
             
             <div className="space-y-4">
-                {Object.entries(selection).map(([beverage, quantity]) => (
+                {Object.entries(selectedBeverages).map(([beverage, quantity]) => (
                     <div key={beverage} className="flex items-center justify-between">
                         <span className="font-medium">
                             {beverage === 'cola' ? '콜라' : 

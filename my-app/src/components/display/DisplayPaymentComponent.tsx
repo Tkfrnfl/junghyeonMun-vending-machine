@@ -7,7 +7,7 @@ import { AlertDialog } from '../dialog/AlertDialog';
 import { VendingStatusType } from '../../util/vendingStatusMap';
 import { useUserSelectionStore } from '../../store/userSelectionStore';
 import { useVendingMoneyStore } from '../../store/vendingMoneyStore';
-
+// 결재 컴포넌트
 interface PaymentInput {
     cash: {
         won100: number;
@@ -23,8 +23,8 @@ interface PaymentInput {
 export const DisplayPaymentComponent = () => {
     const { setVendingTextStatus } = useVendingTextStore();
     const { beverages } = useBeverageStore();
-    const { cash, cardBalance } = useUserMoneyStore();
-    const { setChangeAmount, setPaymentFailed } = useChangeStore();
+    const { cash, cardBalance,setCardBalance } = useUserMoneyStore();
+    const { setChangeAmount, setPaymentFailed,setAdditionalMsg } = useChangeStore();
     const { selectedBeverages, getTotalPrice } = useUserSelectionStore();
     const { 
         getCashCount: getUserCashCount, 
@@ -51,8 +51,17 @@ export const DisplayPaymentComponent = () => {
     const [dialogConfig, setDialogConfig] = useState({
         isOpen: false,
         message: '',
-        returnStatus: 'SELECTING' as VendingStatusType
+        returnStatus: 'SELECTING' as VendingStatusType,
+        isPayment: false,
     });
+
+    const currencies = {
+        won10000: 10000,
+        won5000: 5000,
+        won1000: 1000,
+        won500: 500,
+        won100: 100
+    };
 
     // 입력된 현금 총액 계산
     const getInputCashTotal = () => {
@@ -75,18 +84,75 @@ export const DisplayPaymentComponent = () => {
         // 기타 화폐 체크
         if (paymentInput.cash.other > 0) {
             setPaymentFailed(true);
-            handleCancel();
+            setDialogConfig({
+                isOpen: true,
+                message: '미등록 화폐가 포함되어 있습니다. 결제를 취소합니다.',
+                returnStatus: 'PAYMENT',
+                isPayment:false
+            });
             return;
         }
 
         // 금액 부족
         if (totalInput < totalPrice) {
+            calculateChange(totalInput)
             setDialogConfig({
                 isOpen: true,
                 message: '금액이 부족합니다. 다시 결제하시겠습니까?',
-                returnStatus: 'PAYMENT'
+                returnStatus: 'PAYMENT',
+                isPayment: true
             });
             return;
+        }
+        // 카드 결제 처리
+        if (inputCard > 0) {
+            const remainingPrice = totalPrice - inputCard; // 현금으로 지불할 나머지 금액
+            // 카드 잔액 차감
+            
+            setCardBalance(cardBalance - inputCard);
+            // 현금 결제가 필요한 경우
+            if (remainingPrice > 0) {
+                if (inputCash < remainingPrice) {
+                    setPaymentFailed(true);
+                    setDialogConfig({
+                        isOpen: true,
+                        message: '현금이 부족합니다.',
+                        returnStatus: 'PAYMENT',
+                        isPayment: true
+                    });
+                    // 카드 결제 롤백
+                    setCardBalance(cardBalance);
+                    return;
+                }
+                // 거스름돈 계산 (현금 투입액 - 남은 결제금액)
+                const change = inputCash - remainingPrice;
+                if (change > 0) {
+                    calculateChange(change);
+                    setVendingTextStatus('CHANGEBACK');
+                    return;
+                }
+            }
+        } else {
+            // 현금만 사용하는 경우
+            const change = totalInput - totalPrice;
+            if (change > 0) {
+                calculateChange(change);
+                setVendingTextStatus('CHANGEBACK');
+                return;
+            }else {
+                // 거스름돈이 없는 경우에도 현금 이동 처리
+                Object.entries(paymentInput.cash).forEach(([unit, count]) => {
+                    if (unit !== 'other' && count > 0) {
+                        // 자판기에 현금 추가
+                        const vendingCurrentCount = getVendingCashCount(unit as keyof typeof currencies);
+                        setVendingCashCount(unit as keyof typeof currencies, vendingCurrentCount + count);
+                        
+                        // 사용자 현금 차감
+                        const userCurrentCount = getUserCashCount(unit as keyof typeof currencies);
+                        setUserCashCount(unit as keyof typeof currencies, userCurrentCount - count);
+                    }
+                });
+            }
         }
 
         // 거스름돈 계산
@@ -102,13 +168,6 @@ export const DisplayPaymentComponent = () => {
 
     // 거스름돈 계산 및 저장
     const calculateChange = (amount: number) => {
-        const currencies = {
-            won10000: 10000,
-            won5000: 5000,
-            won1000: 1000,
-            won500: 500,
-            won100: 100
-        };
     
         // 거스름돈 객체 초기화
         const change = {} as Record<keyof typeof currencies, number>;
@@ -129,11 +188,18 @@ export const DisplayPaymentComponent = () => {
         // 거스름돈이 부족한 경우
         if (!hasEnoughChange) {
             setPaymentFailed(true);
-            setDialogConfig({
-                isOpen: true,
-                message: '죄송합니다. 거스름돈이 부족합니다.',
-                returnStatus: 'PAYMENT'
+            
+            // 사용자가 넣은 현금을 changeBackStore에 저장
+            Object.entries(paymentInput.cash).forEach(([unit, count]) => {
+                if (unit !== 'other' && count > 0) {
+                    setChangeAmount(unit as keyof typeof currencies, count);
+                }
             });
+        
+            setAdditionalMsg('거스름돈이 부족합니다. 현금을 반환합니다.');
+            
+            // 거스름돈 반환 상태로 전환
+            setVendingTextStatus('CHANGEBACK');
             return false;
         }
     
@@ -162,20 +228,6 @@ export const DisplayPaymentComponent = () => {
         });
     
         return true;
-    };
-
-    // 취소 처리
-    const handleCancel = () => {
-        if (getInputCashTotal() > 0) {
-            Object.entries(paymentInput.cash).forEach(([unit, count]) => {
-                if (unit !== 'other' && count > 0) {
-                    setChangeAmount(unit as keyof Omit<typeof paymentInput.cash, 'other'>, count);
-                }
-            });
-            setVendingTextStatus('CHANGEBACK');
-        } else {
-            setVendingTextStatus('PAYMENT');
-        }
     };
 
     return (
@@ -222,15 +274,7 @@ export const DisplayPaymentComponent = () => {
                 </div>
             </div>
             
-
-            {/* 버튼 */}
             <div className="flex justify-end space-x-2">
-                <button
-                    onClick={handleCancel}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                    취소
-                </button>
                 <button
                     onClick={handlePayment}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -240,9 +284,11 @@ export const DisplayPaymentComponent = () => {
             </div>
 
             <AlertDialog
+
                 isOpen={dialogConfig.isOpen}
                 message={dialogConfig.message}
                 returnStatus={dialogConfig.returnStatus}
+                isPayment={dialogConfig.isPayment}
                 onClose={() => setDialogConfig(prev => ({ ...prev, isOpen: false }))}
             />
         </div>

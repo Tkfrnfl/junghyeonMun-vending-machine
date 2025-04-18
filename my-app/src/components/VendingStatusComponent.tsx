@@ -18,7 +18,6 @@ export const VendingStatusComponent: React.FC = () => {
         <div className="p-4 bg-white rounded-lg shadow">
             <h2 className="text-xl font-bold mb-4">자판기 상태</h2>
 
-            {/* 음료 재고 현황 */}
             <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">재고 현황</h3>
                 <div className="space-y-2">
@@ -40,7 +39,6 @@ export const VendingStatusComponent: React.FC = () => {
                 </div>
             </div>
 
-            {/* 보유 현금 현황 */}
             <div>
                 <h3 className="text-lg font-semibold mb-2">보유 현금</h3>
                 <div className="space-y-2">

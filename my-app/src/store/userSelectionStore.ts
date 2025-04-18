@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { useBeverageStore } from './beberageStore';
 
+
+// 사용자 선택 음료수의 수량과 가격을 관리하는 스토어입니다.
 interface BeverageSelection {
     cola: number;
     water: number;

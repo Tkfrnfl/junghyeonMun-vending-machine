@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+// 사용자의 돈과 카드 잔액을 관리하는 스토어입니다.
 interface Cash {
     value: number;
     count: number;

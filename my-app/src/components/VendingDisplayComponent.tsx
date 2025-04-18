@@ -1,16 +1,16 @@
 import React from 'react';
 import { useVendingTextStore } from '../store/vendingTextStore';
-import { VENDING_STATUS } from '../util/vendingStatusMap';
 import {
     WaitingComponent,
     SelectionComponent,
     PaymentComponent,
     ChangeBackComponent,
     CompleteComponent,
-    ErrorComponent
 } from './VendingDisplayComponentMap';
 
 import { VendingStatusType } from '../util/vendingStatusMap';
+
+// 자판기 상태에 따라 다른 컴포넌트를 렌더링 해주는 컴포넌트
 
 const statusComponentMap: Record<VendingStatusType, () => JSX.Element> = {
     'WAITING': WaitingComponent,
@@ -18,7 +18,6 @@ const statusComponentMap: Record<VendingStatusType, () => JSX.Element> = {
     'PAYMENT': PaymentComponent,
     'CHANGEBACK': ChangeBackComponent,
     'COMPLETE': CompleteComponent,
-    'ERROR': ErrorComponent,
 };
 
 const VendingDisplayComponent:React.FC = () => {
@@ -28,9 +27,6 @@ const VendingDisplayComponent:React.FC = () => {
 
     return (
         <div className="flex flex-col items-center justify-center h-full">
-            <div className="mb-4 text-lg font-bold">
-                현재 상태: {vendingStatus}
-            </div>
 
             <div className="text-center text-xl mb-4">
                 {vendingMsg}

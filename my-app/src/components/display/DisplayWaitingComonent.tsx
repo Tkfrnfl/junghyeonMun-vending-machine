@@ -2,6 +2,7 @@
 import { useVendingTextStore } from '../../store/vendingTextStore';
 import { VendingStatusType } from '../../util/vendingStatusMap'; 
 
+// 대기 화면 컴포넌트
 export const DisplayWaitingComponent = () => {
     const { setVendingTextStatus } = useVendingTextStore();
 

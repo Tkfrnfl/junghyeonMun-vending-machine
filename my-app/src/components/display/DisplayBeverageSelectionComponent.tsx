@@ -4,7 +4,7 @@ import { useBeverageStore } from '../../store/beberageStore';
 import { useUserSelectionStore } from '../../store/userSelectionStore';
 import { VendingStatusType } from '../../util/vendingStatusMap';
 import { AlertDialog } from '../dialog/AlertDialog';
-
+// 음료 선택 컴포넌트
 interface BeverageSelection {
     cola: number;
     water: number;

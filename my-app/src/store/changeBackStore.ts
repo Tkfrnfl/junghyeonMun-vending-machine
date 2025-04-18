@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+// 자판기에서 거스름돈을 관리하는 스토어입니다.
 interface ChangeAmount {
     won100: number;
     won500: number;
@@ -10,15 +11,20 @@ interface ChangeAmount {
 
 interface ChangeStore {
     isPaymentFailed: boolean;
+    additionalMsg: string;
     changeAmounts: ChangeAmount;
     
     setPaymentFailed: (status: boolean) => void;
+    getPaymentFailed: () => boolean;
+    setAdditionalMsg: (msg: string) => void;
+    getAdditionalMsg: () => string;
     setChangeAmount: (unit: keyof ChangeAmount, count: number) => void;
     resetChangeAmounts: () => void;
 }
 
 export const useChangeStore = create<ChangeStore>((set, get) => ({
     isPaymentFailed: false,
+    additionalMsg: '', 
     changeAmounts: {
         won100: 0,
         won500: 0,
@@ -30,6 +36,14 @@ export const useChangeStore = create<ChangeStore>((set, get) => ({
     setPaymentFailed: (status) => set({ 
         isPaymentFailed: status 
     }),
+    
+    getPaymentFailed: () => get().isPaymentFailed,
+
+    setAdditionalMsg: (msg) => set({ 
+        additionalMsg: msg 
+    }),
+    
+    getAdditionalMsg: () => get().additionalMsg,
 
     setChangeAmount: (unit, count) => set((state) => ({
         changeAmounts: {
@@ -38,14 +52,15 @@ export const useChangeStore = create<ChangeStore>((set, get) => ({
         }
     })),
 
-    resetChangeAmounts: () => set({
+    resetChangeAmounts: () => set((state) => ({
         changeAmounts: {
             won100: 0,
             won500: 0,
             won1000: 0,
             won5000: 0,
             won10000: 0
-        }
-    }),
-
+        },
+        isPaymentFailed: false,    
+        additionalMsg: ''         
+    }))
 }));

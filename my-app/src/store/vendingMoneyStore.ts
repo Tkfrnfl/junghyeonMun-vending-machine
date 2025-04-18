@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+// 자판기에서 거스름돈을 관리하는 스토어입니다.
 interface Cash {
     value: number;
     count: number;

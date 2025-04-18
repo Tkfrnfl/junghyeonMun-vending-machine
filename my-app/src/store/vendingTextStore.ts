@@ -1,11 +1,21 @@
 import { create } from 'zustand';
+import { VENDING_STATUS, VENDING_MESSAGES } from '../util/vendingStatusMap';
 
-interface TextStore {
-    displayText: string
-    setDisplayText: (text: string) => void
+// 자판기의 상태와 메시지를 관리하는 스토어입니다.
+interface VendingTextStore {
+    vendingStatus: string
+    vendingMsg: string
+    setVendingTextStatus: (status: keyof typeof VENDING_STATUS) => void
+    //setVendingTextMsg: (msg: string) => void
 }
 
-export const useTextStore = create<TextStore>((set) => ({
-    displayText: 'Hello World',
-    setDisplayText: (text: string) => set({ displayText: text }),
-}))
+export const useVendingTextStore = create<VendingTextStore>((set) => ({
+    vendingStatus: VENDING_STATUS.WAITING,
+    vendingMsg: VENDING_MESSAGES[VENDING_STATUS.WAITING],
+    
+    setVendingTextStatus: (status) => set({ 
+        vendingStatus: status,
+        vendingMsg: VENDING_MESSAGES[VENDING_STATUS[status]]
+    }),
+   // setVendingTextMsg: (msg) => set({ vendingMsg: msg })
+}));

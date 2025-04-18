@@ -7,7 +7,7 @@ import { AlertDialog } from '../dialog/AlertDialog';
 import { VendingStatusType } from '../../util/vendingStatusMap';
 import { useUserSelectionStore } from '../../store/userSelectionStore';
 import { useVendingMoneyStore } from '../../store/vendingMoneyStore';
-// 결재 컴포넌트
+// 결제 컴포넌트
 interface PaymentInput {
     cash: {
         won100: number;
@@ -106,11 +106,33 @@ export const DisplayPaymentComponent = () => {
         }
         // 카드 결제 처리
         if (inputCard > 0) {
-            const remainingPrice = totalPrice - inputCard; // 현금으로 지불할 나머지 금액
-            // 카드 잔액 차감
-            
+            // 카드 잔액 검증
+            if (inputCard > cardBalance) {
+                setDialogConfig({
+                    isOpen: true,
+                    message: '카드 잔액이 부족합니다.',
+                    returnStatus: 'PAYMENT',
+                    isPayment: false
+                });
+                return;
+            }
+            const remainingPrice = totalPrice - inputCard; 
+
+            // 카드로만 결제하는 경우
+            const hasCashInput = Object.entries(paymentInput.cash)
+                .some(([unit, count]) => unit !== 'other' && count > 0);
+
+            if (!hasCashInput && inputCard >= totalPrice) {
+                setCardBalance(cardBalance - totalPrice);
+                setVendingTextStatus('COMPLETE');
+                return;
+            }
+
+            // 카드 잔액 차감           
             setCardBalance(cardBalance - inputCard);
-            // 현금 결제가 필요한 경우
+
+
+            // 카드 + 현금 결제인 경우
             if (remainingPrice > 0) {
                 if (inputCash < remainingPrice) {
                     setPaymentFailed(true);
@@ -273,7 +295,9 @@ export const DisplayPaymentComponent = () => {
                     />
                 </div>
             </div>
-            
+            <div>* 기타 금액을 적으시면 지정된 화폐 외의 화폐를 투입하는 시나리오입니다.</div>
+            <div>* 카드 결제앤 카드로 결제하실 금액을 적어주세요</div>
+
             <div className="flex justify-end space-x-2">
                 <button
                     onClick={handlePayment}
